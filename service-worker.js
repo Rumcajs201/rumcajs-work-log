@@ -1,10 +1,11 @@
-const CACHE = "rumcajs-work-log-v0.3.0";
+const CACHE = "rumcajs-work-log-v0.3.0-profiles-1";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./css/app.css",
   "./js/app.js",
+  "./js/config/app-config.js",
   "./js/db/indexeddb.js",
   "./js/modules/time.js",
   "./js/modules/workdays.js",
