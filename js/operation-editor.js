@@ -12,6 +12,16 @@ const TEXT = {
 };
 
 function ui() { return TEXT[document.documentElement.lang || "pl"] || TEXT.pl; }
+function localDateId() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+function ensureStyles() {
+  if (document.querySelector('link[data-operation-editor="1"]')) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "./css/operation-editor.css";
+  link.dataset.operationEditor = "1";
+  document.head.appendChild(link);
+}
 
 function toast(text) {
   const box = $("#toast");
@@ -49,10 +59,7 @@ async function openEditor(id) {
   box.classList.remove("hidden");
 }
 
-function closeEditor() {
-  currentOperationId = null;
-  $("#operationEditDialog")?.classList.add("hidden");
-}
+function closeEditor() { currentOperationId = null; $("#operationEditDialog")?.classList.add("hidden"); }
 
 async function saveEditor() {
   const item = await get(STORES.operations, currentOperationId);
@@ -73,13 +80,10 @@ async function saveEditor() {
   await put(STORES.operations, updated);
   closeEditor();
   toast(ui().saved);
-  document.querySelector('.nav-button[data-view="home"]')?.click();
   setTimeout(() => location.reload(), 250);
 }
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-}
+function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char])); }
 
 async function decorateTimeline() {
   if (decorating) return;
@@ -87,9 +91,7 @@ async function decorateTimeline() {
   try {
     const timeline = $("#todayOperations");
     if (!timeline) return;
-    const items = (await getAll(STORES.operations))
-      .filter(item => item.workdayId === new Date().toISOString().slice(0, 10))
-      .sort((a, b) => (a.startedAt || 0) - (b.startedAt || 0));
+    const items = (await getAll(STORES.operations)).filter(item => item.workdayId === localDateId()).sort((a, b) => (a.startedAt || 0) - (b.startedAt || 0));
     [...timeline.querySelectorAll(".timeline-item")].forEach((row, index) => {
       const item = items[index];
       if (!item || row.querySelector(".operation-edit-button")) return;
@@ -100,12 +102,11 @@ async function decorateTimeline() {
       button.onclick = () => openEditor(item.id);
       row.appendChild(button);
     });
-  } finally {
-    decorating = false;
-  }
+  } finally { decorating = false; }
 }
 
 function boot() {
+  ensureStyles();
   ensureDialog();
   const timeline = $("#todayOperations");
   if (!timeline) return;
