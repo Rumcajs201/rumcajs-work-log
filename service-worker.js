@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.5.6-billing-gps-1";
+const CACHE = "rumcajs-work-log-v0.6.0-payments-settings-1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,6 +15,7 @@ const ASSETS = [
   "./js/carrier-context.js",
   "./js/fleet-ui.js",
   "./js/operation-editor.js",
+  "./js/payments-settings.js",
   "./js/config/app-config.js",
   "./js/db/indexeddb.js",
   "./js/modules/time.js",
