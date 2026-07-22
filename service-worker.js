@@ -1,14 +1,16 @@
-const CACHE = "rumcajs-work-log-v0.5.1-history-search-1";
+const CACHE = "rumcajs-work-log-v0.5.2-carrier-context-1";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./css/app.css",
   "./css/saved-places.css",
+  "./css/carrier-context.css",
   "./js/app.js",
   "./js/i18n.js",
   "./js/language-switcher.js",
   "./js/history-search.js",
+  "./js/carrier-context.js",
   "./js/config/app-config.js",
   "./js/db/indexeddb.js",
   "./js/modules/time.js",
@@ -18,7 +20,9 @@ const ASSETS = [
   "./js/modules/gps.js",
   "./js/modules/stores.js",
   "./js/modules/reverse-geocode.js",
-  "./js/modules/places.js"
+  "./js/modules/places.js",
+  "./data/carriers.json",
+  "./data/hansen-jensen-halden-fleet.json"
 ];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
