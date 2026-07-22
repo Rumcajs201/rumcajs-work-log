@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "defaultCarrierByProfile": {
+    "europris": "hansen-jensen-halden"
+  },
+  "carriers": [
+    {
+      "id": "hansen-jensen-halden",
+      "name": "Hansen & Jensen",
+      "branch": "Halden",
+      "displayName": "Hansen & Jensen Halden",
+      "profiles": ["europris"],
+      "status": "active",
+      "fleetFile": "./hansen-jensen-halden-fleet.json"
+    }
+  ]
+}
