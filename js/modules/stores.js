@@ -2,8 +2,17 @@ const STORES_URLS = [
   "https://rumcajs201.github.io/europris-dostawa/stores.json",
   "https://raw.githubusercontent.com/Rumcajs201/europris-dostawa/main/stores.json"
 ];
-
+const LOCAL_CACHE_KEY = "rumcajs-work-log-stores-cache-v1";
 let storesCache = null;
+
+function normalize(data) {
+  return data.map(store => ({
+    ...store,
+    number: Number(store.number),
+    latitude: Number(store.latitude),
+    longitude: Number(store.longitude)
+  }));
+}
 
 export async function loadStores() {
   if (storesCache) return storesCache;
@@ -13,17 +22,22 @@ export async function loadStores() {
     try {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      storesCache = data.map(store => ({
-        ...store,
-        number: Number(store.number),
-        latitude: Number(store.latitude),
-        longitude: Number(store.longitude)
-      }));
+      storesCache = normalize(await response.json());
+      localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(storesCache));
       return storesCache;
     } catch (error) {
       lastError = error;
     }
+  }
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || "null");
+    if (Array.isArray(cached) && cached.length) {
+      storesCache = normalize(cached);
+      return storesCache;
+    }
+  } catch (error) {
+    lastError = error;
   }
 
   throw new Error(`Nie udało się pobrać bazy sklepów: ${lastError?.message || "nieznany błąd"}`);
@@ -32,15 +46,12 @@ export async function loadStores() {
 export function searchStores(stores, query, limit = 8) {
   const text = String(query || "").trim().toLocaleLowerCase("pl-PL");
   if (!text) return [];
-
-  return stores
-    .filter(store => {
-      const number = String(store.number);
-      const name = String(store.name || "").toLocaleLowerCase("pl-PL");
-      const address = String(store.address || "").toLocaleLowerCase("pl-PL");
-      return number.includes(text) || name.includes(text) || address.includes(text);
-    })
-    .slice(0, limit);
+  return stores.filter(store => {
+    const number = String(store.number);
+    const name = String(store.name || "").toLocaleLowerCase("pl-PL");
+    const address = String(store.address || "").toLocaleLowerCase("pl-PL");
+    return number.includes(text) || name.includes(text) || address.includes(text);
+  }).slice(0, limit);
 }
 
 function distanceMeters(lat1, lon1, lat2, lon2) {
@@ -55,13 +66,11 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
 export function findNearestStore(stores, position) {
   if (!position) return null;
   let nearest = null;
-
   for (const store of stores) {
     if (!Number.isFinite(store.latitude) || !Number.isFinite(store.longitude)) continue;
     const distance = distanceMeters(position.latitude, position.longitude, store.latitude, store.longitude);
     if (!nearest || distance < nearest.distance) nearest = { store, distance };
   }
-
   return nearest;
 }
 
