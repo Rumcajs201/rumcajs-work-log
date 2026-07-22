@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.4.1-language-header-1";
+const CACHE = "rumcajs-work-log-v0.4.2-smart-location-1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -14,7 +14,8 @@ const ASSETS = [
   "./js/modules/operations.js",
   "./js/modules/backup.js",
   "./js/modules/gps.js",
-  "./js/modules/stores.js"
+  "./js/modules/stores.js",
+  "./js/modules/reverse-geocode.js"
 ];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
