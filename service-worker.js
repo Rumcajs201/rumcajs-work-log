@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.4.0-i18n-1";
+const CACHE = "rumcajs-work-log-v0.4.1-language-header-1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS = [
   "./css/app.css",
   "./js/app.js",
   "./js/i18n.js",
+  "./js/language-switcher.js",
   "./js/config/app-config.js",
   "./js/db/indexeddb.js",
   "./js/modules/time.js",
