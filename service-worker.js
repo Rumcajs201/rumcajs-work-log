@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.2.0";
+const CACHE = "rumcajs-work-log-v0.3.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,7 +10,8 @@ const ASSETS = [
   "./js/modules/workdays.js",
   "./js/modules/operations.js",
   "./js/modules/backup.js",
-  "./js/modules/gps.js"
+  "./js/modules/gps.js",
+  "./js/modules/stores.js"
 ];
 
 self.addEventListener("install", event => {
