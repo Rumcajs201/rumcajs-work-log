@@ -12,28 +12,35 @@ export function roundStart(date = new Date()) {
 export function roundEnd(date = new Date()) {
   const rounded = new Date(date);
   rounded.setSeconds(0, 0);
-
   const minute = rounded.getMinutes();
   const quarter = Math.floor(minute / 15) * 15;
   const offset = minute - quarter;
   let result = quarter + (offset > 5 ? 15 : 0);
-
   if (result >= 60) {
     rounded.setHours(rounded.getHours() + 1);
     result = 0;
   }
-
   rounded.setMinutes(result);
+  return clock(rounded);
+}
+
+export function roundToNearestFive(date = new Date()) {
+  const rounded = new Date(date);
+  rounded.setSeconds(0, 0);
+  let minutes = Math.round(rounded.getMinutes() / 5) * 5;
+  if (minutes >= 60) {
+    rounded.setHours(rounded.getHours() + 1);
+    minutes = 0;
+  }
+  rounded.setMinutes(minutes);
   return clock(rounded);
 }
 
 export function minutesBetween(start, end, breakMinutes = 0) {
   if (!start || !end) return 0;
-
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
   let total = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-
   if (total < 0) total += 1440;
   return Math.max(0, total - Number(breakMinutes || 0));
 }
