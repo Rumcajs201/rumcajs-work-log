@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.4.0 — wielojęzyczność
+
+### Dodano
+- język polski,
+- język angielski,
+- język niemiecki,
+- język norweski,
+- wybór języka w ustawieniach,
+- zapamiętywanie języka w IndexedDB,
+- tłumaczenie ekranów, formularzy, komunikatów, kalendarza i historii operacji,
+- automatyczny format dat zależny od języka.
+
+### Zachowano
+- profile Europris i Uniwersalny,
+- lokalny zapis danych,
+- działanie offline,
+- zasady zaokrąglania czasu pracy,
+- zaokrąglanie załadunków i rozładunków do 5 minut.
+
+### Następny etap
+- lokalna baza miejsc profilu Uniwersalnego,
+- zapisywanie adresu i współrzędnych nowych miejsc,
+- automatyczne rozpoznawanie zapisanych miejsc przez GPS,
+- formularz opinii i zgłoszeń.
+
 ## v0.3.0 — profile pracy
 
 ### Dodano
@@ -16,12 +41,6 @@
 - zasady zaokrąglania czasu pracy,
 - zaokrąglanie operacji do 5 minut,
 - bazę sklepów Europris pobieraną z projektu Europris Dostawy.
-
-### Następny etap
-- pełny system językowy PL/EN/DE/NO,
-- lokalna baza miejsc profilu Uniwersalnego,
-- zapisywanie adresu i współrzędnych nowych miejsc,
-- formularz opinii i zgłoszeń.
 
 ## v0.2.0 — operacje
 - rozładunki i załadunki,
