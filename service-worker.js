@@ -1,9 +1,10 @@
-const CACHE = "rumcajs-work-log-v0.4.2-smart-location-1";
+const CACHE = "rumcajs-work-log-v0.5.0-saved-places-1";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./css/app.css",
+  "./css/saved-places.css",
   "./js/app.js",
   "./js/i18n.js",
   "./js/language-switcher.js",
@@ -15,7 +16,8 @@ const ASSETS = [
   "./js/modules/backup.js",
   "./js/modules/gps.js",
   "./js/modules/stores.js",
-  "./js/modules/reverse-geocode.js"
+  "./js/modules/reverse-geocode.js",
+  "./js/modules/places.js"
 ];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
