@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.5.2-carrier-context-1";
+const CACHE = "rumcajs-work-log-v0.5.3-fleet-profile-1";
 const ASSETS = [
   "./",
   "./index.html",
