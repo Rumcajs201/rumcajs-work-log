@@ -1,8 +1,9 @@
 const DB_NAME = "rumcajs-work-log";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export const STORES = {
   workdays: "workdays",
+  operations: "operations",
   settings: "settings",
   appState: "appState",
   backups: "backups"
@@ -12,23 +13,17 @@ let dbPromise;
 
 export function openDB() {
   if (dbPromise) return dbPromise;
-
   dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-
     request.onupgradeneeded = () => {
       const db = request.result;
       for (const name of Object.values(STORES)) {
-        if (!db.objectStoreNames.contains(name)) {
-          db.createObjectStore(name, { keyPath: "id" });
-        }
+        if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: "id" });
       }
     };
-
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
-
   return dbPromise;
 }
 
