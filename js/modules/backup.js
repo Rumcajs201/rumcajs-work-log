@@ -9,7 +9,8 @@ export async function exportDB() {
     workdays: await getAll(STORES.workdays),
     operations: await getAll(STORES.operations),
     settings: await getAll(STORES.settings),
-    appState: await getAll(STORES.appState)
+    appState: await getAll(STORES.appState),
+    places: await getAll(STORES.places)
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -30,12 +31,14 @@ export async function importDB(file) {
       workdays: await getAll(STORES.workdays),
       operations: await getAll(STORES.operations),
       settings: await getAll(STORES.settings),
-      appState: await getAll(STORES.appState)
+      appState: await getAll(STORES.appState),
+      places: await getAll(STORES.places)
     }
   });
-  for (const store of [STORES.workdays, STORES.operations, STORES.settings, STORES.appState]) await clear(store);
+  for (const store of [STORES.workdays, STORES.operations, STORES.settings, STORES.appState, STORES.places]) await clear(store);
   for (const item of data.workdays ?? []) await put(STORES.workdays, item);
   for (const item of data.operations ?? []) await put(STORES.operations, item);
   for (const item of data.settings ?? []) await put(STORES.settings, item);
   for (const item of data.appState ?? []) await put(STORES.appState, item);
+  for (const item of data.places ?? []) await put(STORES.places, item);
 }
