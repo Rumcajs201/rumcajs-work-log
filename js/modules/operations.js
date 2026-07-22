@@ -16,10 +16,14 @@ export async function startOperation(data) {
     id: `operation-${now}`,
     workdayId: data.workdayId,
     type: data.type,
+    profile: data.profile ?? null,
     place: data.place,
+    placeId: data.placeId ?? null,
     storeNumber: data.storeNumber ?? null,
     storeName: data.storeName ?? null,
     storeAddress: data.storeAddress ?? null,
+    locality: data.locality ?? null,
+    countryCode: data.countryCode ?? null,
     startTime: data.startTime,
     detectedStartTime: data.detectedStartTime,
     endTime: null,
@@ -43,9 +47,7 @@ export async function finishOperation(id, data) {
   const pallets = Number(data.pallets);
   if (!Number.isFinite(pallets) || pallets < 0) throw new Error("Wpisz prawidłową liczbę palet.");
 
-  const emptyValue = data.emptyPallets === "" || data.emptyPallets == null
-    ? 0
-    : Number(data.emptyPallets);
+  const emptyValue = data.emptyPallets === "" || data.emptyPallets == null ? 0 : Number(data.emptyPallets);
   if (!Number.isFinite(emptyValue) || emptyValue < 0) throw new Error("Wpisz prawidłową liczbę pustych palet.");
 
   const updated = {
