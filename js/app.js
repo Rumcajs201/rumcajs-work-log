@@ -2,6 +2,7 @@ import { openDB, get, put, getAll, STORES } from "./db/indexeddb.js";
 import { dateId, clock, roundStart, roundEnd, saved, minutesText } from "./modules/time.js";
 import { getDay, saveDay, getState } from "./modules/workdays.js";
 import { exportDB, importDB } from "./modules/backup.js";
+import { getCurrentPosition, formatPosition } from "./modules/gps.js";
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -11,6 +12,8 @@ let currentMonth = new Date();
 
 const defaults = {
   id: "main",
+  defaultDriverName: "Andrzej Osowski",
+  defaultTruckId: "",
   hourlyRate: 225,
   overtimePercent: 40,
   dailyMinutes: 480,
@@ -22,7 +25,7 @@ function toast(text) {
   $("#toast").textContent = text;
   $("#toast").classList.remove("hidden");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => $("#toast").classList.add("hidden"), 2500);
+  toast.timer = setTimeout(() => $("#toast").classList.add("hidden"), 3000);
 }
 
 function setView(name) {
@@ -41,6 +44,8 @@ async function ensureSettings() {
   if (!settings) {
     settings = defaults;
     await put(STORES.settings, settings);
+  } else {
+    settings = { ...defaults, ...settings };
   }
   return settings;
 }
@@ -49,10 +54,14 @@ function renderHome() {
   const started = Boolean(currentDay?.finalStartTime);
   const ended = Boolean(currentDay?.finalEndTime);
 
+  $("#homeDriver").textContent = currentDay?.driverName || "—";
   $("#homeStart").textContent = currentDay?.finalStartTime || "—";
   $("#homeEnd").textContent = currentDay?.finalEndTime || "—";
   $("#homeTruck").textContent = currentDay?.truckId || "—";
   $("#homeTrailer").textContent = currentDay?.trailerNumber || "—";
+  $("#homeNet").textContent = minutesText(currentDay?.netMinutes || 0);
+  $("#homeStartPosition").textContent = formatPosition(currentDay?.startPosition);
+  $("#homeEndPosition").textContent = formatPosition(currentDay?.endPosition);
   $("#startWorkButton").disabled = started && !ended;
   $("#stopWorkButton").disabled = !started || ended;
   $("#dayBadge").textContent = !started ? "Nie rozpoczęto" : ended ? "Zakończono" : "W trakcie";
@@ -65,42 +74,65 @@ async function refresh() {
   $("#lastSaved").textContent = saved(state?.lastSavedAt || currentDay?.updatedAt);
 }
 
+async function capturePosition(label) {
+  try {
+    toast(`Pobieram GPS: ${label}…`);
+    return await getCurrentPosition();
+  } catch (error) {
+    toast(`${error.message} Czas zapisano bez GPS.`);
+    return null;
+  }
+}
+
 async function startWork() {
+  const settings = await ensureSettings();
   const now = new Date();
   const id = dateId();
+  const position = await capturePosition("rozpoczęcie pracy");
+
   currentDay = await saveDay({
     ...currentDay,
     id,
     date: id,
     dayType: currentDay?.dayType ?? "work",
+    driverName: currentDay?.driverName || settings.defaultDriverName,
+    truckId: currentDay?.truckId || settings.defaultTruckId,
     detectedStartTime: clock(now),
     finalStartTime: roundStart(now),
     finalEndTime: null,
+    startPosition: position ?? currentDay?.startPosition ?? null,
     manuallyAdjusted: false
   });
-  toast(`Start: ${currentDay.finalStartTime}`);
+
+  toast(`Start zapisany: ${currentDay.finalStartTime}`);
   await refresh();
 }
 
 async function stopWork() {
   const now = new Date();
+  const position = await capturePosition("zakończenie pracy");
+
   currentDay = await saveDay({
     ...currentDay,
     detectedEndTime: clock(now),
     finalEndTime: roundEnd(now),
+    endPosition: position ?? currentDay?.endPosition ?? null,
     manuallyAdjusted: false
   });
-  toast(`Koniec: ${currentDay.finalEndTime}`);
+
+  toast(`Koniec zapisany: ${currentDay.finalEndTime}`);
   await refresh();
 }
 
 async function loadDayForm(id = dateId()) {
   const day = await getDay(id);
+  const settings = await ensureSettings();
   $("#workDate").value = id;
   $("#dayType").value = day?.dayType ?? "work";
+  $("#driverName").value = day?.driverName ?? settings.defaultDriverName;
   $("#startTime").value = day?.finalStartTime ?? "";
   $("#endTime").value = day?.finalEndTime ?? "";
-  $("#truckId").value = day?.truckId ?? "";
+  $("#truckId").value = day?.truckId ?? settings.defaultTruckId;
   $("#trailerNumber").value = day?.trailerNumber ?? "";
   $("#breakMinutes").value = day?.breakMinutes ?? 0;
   $("#notes").value = day?.notes ?? "";
@@ -122,6 +154,7 @@ async function saveDayForm(event) {
     id,
     date: id,
     dayType: $("#dayType").value,
+    driverName: $("#driverName").value.trim(),
     finalStartTime: $("#startTime").value || null,
     finalEndTime: $("#endTime").value || null,
     truckId: $("#truckId").value.trim(),
@@ -143,7 +176,6 @@ async function renderCalendar() {
   const month = currentMonth.getMonth();
   const rows = $("#monthRows");
   rows.innerHTML = "";
-
   $("#calendarTitle").textContent = new Intl.DateTimeFormat("pl-PL", { month: "long", year: "numeric" }).format(currentMonth);
 
   let total = 0;
@@ -180,6 +212,8 @@ async function renderCalendar() {
 
 async function loadSettings() {
   const settings = await ensureSettings();
+  $("#defaultDriverName").value = settings.defaultDriverName;
+  $("#defaultTruckId").value = settings.defaultTruckId;
   $("#hourlyRate").value = settings.hourlyRate;
   $("#overtimePercent").value = settings.overtimePercent;
   $("#dailyMinutes").value = settings.dailyMinutes;
@@ -190,6 +224,8 @@ async function saveSettings(event) {
   event.preventDefault();
   await put(STORES.settings, {
     id: "main",
+    defaultDriverName: $("#defaultDriverName").value.trim(),
+    defaultTruckId: $("#defaultTruckId").value.trim(),
     hourlyRate: Number($("#hourlyRate").value || 0),
     overtimePercent: Number($("#overtimePercent").value || 0),
     dailyMinutes: Number($("#dailyMinutes").value || 0),
@@ -233,9 +269,7 @@ async function boot() {
   await openDB();
   await ensureSettings();
   await refresh();
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./service-worker.js").catch(console.error);
-  }
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js").catch(console.error);
 }
 
 boot().catch(error => {
