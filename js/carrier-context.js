@@ -46,24 +46,28 @@ async function renderCarrierContext() {
     box.classList.add("hidden");
     return;
   }
-
   const carrierId = settings?.carrierId || "hansen-jensen-halden";
   const t = ui();
-  box.innerHTML = `
-    <span id="carrierContextLabel">${t.label}</span>
-    <div class="carrier-choice-grid">
-      <button type="button" class="carrier-choice ${carrierId === "hansen-jensen-halden" ? "active" : "inactive"}" data-carrier="hansen-jensen-halden">${t.hansen}</button>
-      <button type="button" class="carrier-choice ${carrierId === "other" ? "active" : "inactive"}" data-carrier="other">${t.others}</button>
-    </div>`;
+  box.innerHTML = `<span id="carrierContextLabel">${t.label}</span><div class="carrier-choice-grid"><button type="button" class="carrier-choice ${carrierId === "hansen-jensen-halden" ? "active" : "inactive"}" data-carrier="hansen-jensen-halden">${t.hansen}</button><button type="button" class="carrier-choice ${carrierId === "other" ? "active" : "inactive"}" data-carrier="other">${t.others}</button></div>`;
   box.classList.remove("hidden");
-  box.querySelectorAll("[data-carrier]").forEach(button => {
-    button.addEventListener("click", () => selectCarrier(button.dataset.carrier));
-  });
+  box.querySelectorAll("[data-carrier]").forEach(button => button.addEventListener("click", () => selectCarrier(button.dataset.carrier)));
+}
+
+async function preserveCarrierAfterSettingsSave(carrierId) {
+  setTimeout(async () => {
+    const current = await get(STORES.settings, "main") || { id: "main" };
+    await put(STORES.settings, { ...current, carrierId, updatedAt: Date.now() });
+    await renderCarrierContext();
+    document.dispatchEvent(new CustomEvent("carrier-changed", { detail: { carrierId } }));
+  }, 80);
 }
 
 function bind() {
   renderCarrierContext().catch(console.error);
-  $("#settingsForm")?.addEventListener("submit", () => setTimeout(() => renderCarrierContext().catch(console.error), 50));
+  $("#settingsForm")?.addEventListener("submit", async () => {
+    const current = await get(STORES.settings, "main");
+    preserveCarrierAfterSettingsSave(current?.carrierId || "hansen-jensen-halden").catch(console.error);
+  }, true);
   $("#workProfile")?.addEventListener("change", () => setTimeout(() => renderCarrierContext().catch(console.error), 0));
   $("#language")?.addEventListener("change", () => setTimeout(() => renderCarrierContext().catch(console.error), 0));
 }
