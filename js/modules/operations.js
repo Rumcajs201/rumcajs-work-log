@@ -17,13 +17,16 @@ export async function startOperation(data) {
     workdayId: data.workdayId,
     type: data.type,
     place: data.place,
+    storeNumber: data.storeNumber ?? null,
+    storeName: data.storeName ?? null,
+    storeAddress: data.storeAddress ?? null,
     startTime: data.startTime,
     detectedStartTime: data.detectedStartTime,
     endTime: null,
     detectedEndTime: null,
-    pallets: Number(data.pallets || 0),
-    emptyPallets: data.type === "unload" ? Number(data.emptyPallets || 0) : 0,
-    notes: String(data.notes || ""),
+    pallets: null,
+    emptyPallets: null,
+    notes: "",
     position: data.position ?? null,
     startedAt: now,
     endedAt: null,
@@ -36,10 +39,22 @@ export async function startOperation(data) {
 export async function finishOperation(id, data) {
   const operation = await get(STORES.operations, id);
   if (!operation) throw new Error("Nie znaleziono aktywnej operacji.");
+
+  const pallets = Number(data.pallets);
+  if (!Number.isFinite(pallets) || pallets < 0) throw new Error("Wpisz prawidłową liczbę palet.");
+
+  const emptyValue = data.emptyPallets === "" || data.emptyPallets == null
+    ? 0
+    : Number(data.emptyPallets);
+  if (!Number.isFinite(emptyValue) || emptyValue < 0) throw new Error("Wpisz prawidłową liczbę pustych palet.");
+
   const updated = {
     ...operation,
     endTime: data.endTime,
     detectedEndTime: data.detectedEndTime,
+    pallets,
+    emptyPallets: operation.type === "unload" ? emptyValue : 0,
+    notes: String(data.notes || ""),
     endedAt: Date.now(),
     updatedAt: Date.now()
   };
