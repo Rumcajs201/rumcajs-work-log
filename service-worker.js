@@ -1,4 +1,4 @@
-const CACHE = "rumcajs-work-log-v0.6.3-update-fix-1";
+const CACHE = "rumcajs-work-log-v0.6.4-detailed-address-1";
 const ASSETS = [
   "./",
   "./index.html",
