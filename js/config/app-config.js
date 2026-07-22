@@ -1,5 +1,5 @@
 export const APP_CONFIG = Object.freeze({
-  version: "0.6.3",
+  version: "0.6.4",
   availableProfiles: ["europris", "universal"],
   defaultProfile: "europris",
   allowProfileChange: true,
