@@ -15,12 +15,8 @@ async function loadFleet() {
 
 function renderList(box, input, query = "") {
   const normalized = query.trim().toUpperCase().replace(/\s+/g, "");
-  const matches = registrations.filter(registration =>
-    registration.replace(/\s+/g, "").includes(normalized)
-  );
-  box.innerHTML = matches.map(registration =>
-    `<button type="button" data-registration="${registration}">${registration}</button>`
-  ).join("");
+  const matches = registrations.filter(registration => registration.replace(/\s+/g, "").includes(normalized));
+  box.innerHTML = matches.map(registration => `<button type="button" data-registration="${registration}">${registration}</button>`).join("");
   box.classList.toggle("hidden", matches.length === 0);
   box.querySelectorAll("button").forEach(button => {
     button.addEventListener("click", () => {
@@ -35,38 +31,29 @@ function renderList(box, input, query = "") {
 function enhanceInput(input) {
   if (!input || input.dataset.fleetEnhanced === "1") return;
   input.dataset.fleetEnhanced = "1";
-
   const wrapper = document.createElement("div");
   wrapper.className = "fleet-input-wrapper";
   input.parentNode.insertBefore(wrapper, input);
   wrapper.appendChild(input);
-
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "fleet-toggle";
   toggle.setAttribute("aria-label", "Rozwiń listę ciężarówek");
   toggle.textContent = "▾";
   wrapper.appendChild(toggle);
-
   const list = document.createElement("div");
   list.className = "fleet-list hidden";
   wrapper.appendChild(list);
-
   toggle.addEventListener("click", event => {
     event.stopPropagation();
     if (toggle.classList.contains("hidden")) return;
-    if (!list.classList.contains("hidden")) {
-      list.classList.add("hidden");
-      return;
-    }
+    if (!list.classList.contains("hidden")) return list.classList.add("hidden");
     renderList(list, input, "");
   });
-
   input.addEventListener("input", () => {
     if (toggle.classList.contains("hidden")) return;
     renderList(list, input, input.value);
   });
-
   document.addEventListener("click", event => {
     if (!wrapper.contains(event.target)) list.classList.add("hidden");
   });
@@ -75,11 +62,13 @@ function enhanceInput(input) {
 async function applyFleetVisibility() {
   const settings = await get(STORES.settings, "main");
   const europris = (settings?.workProfile || "europris") === "europris";
+  const hansen = (settings?.carrierId || "hansen-jensen-halden") === "hansen-jensen-halden";
+  const showFleet = europris && hansen;
   [$("#defaultTruckId"), $("#truckId")].forEach(input => {
     if (!input) return;
     enhanceInput(input);
     const wrapper = input.closest(".fleet-input-wrapper");
-    wrapper?.querySelector(".fleet-toggle")?.classList.toggle("hidden", !europris);
+    wrapper?.querySelector(".fleet-toggle")?.classList.toggle("hidden", !showFleet);
     wrapper?.querySelector(".fleet-list")?.classList.add("hidden");
   });
 }
@@ -87,12 +76,7 @@ async function applyFleetVisibility() {
 async function saveProfileAndStayInSettings(event) {
   event.stopImmediatePropagation();
   const current = await get(STORES.settings, "main") || { id: "main" };
-  await put(STORES.settings, {
-    ...current,
-    id: "main",
-    workProfile: event.target.value,
-    updatedAt: Date.now()
-  });
+  await put(STORES.settings, { ...current, id: "main", workProfile: event.target.value, updatedAt: Date.now() });
   sessionStorage.setItem("rumcajs-restore-view", "settings");
   location.reload();
 }
@@ -100,9 +84,7 @@ async function saveProfileAndStayInSettings(event) {
 function restoreView() {
   if (sessionStorage.getItem("rumcajs-restore-view") !== "settings") return;
   sessionStorage.removeItem("rumcajs-restore-view");
-  requestAnimationFrame(() => {
-    document.querySelector('.nav-button[data-view="settings"]')?.click();
-  });
+  requestAnimationFrame(() => document.querySelector('.nav-button[data-view="settings"]')?.click());
 }
 
 async function boot() {
@@ -110,9 +92,8 @@ async function boot() {
   enhanceInput($("#defaultTruckId"));
   enhanceInput($("#truckId"));
   await applyFleetVisibility();
-
-  const profile = $("#workProfile");
-  profile?.addEventListener("change", saveProfileAndStayInSettings, true);
+  $("#workProfile")?.addEventListener("change", saveProfileAndStayInSettings, true);
+  document.addEventListener("carrier-changed", () => applyFleetVisibility().catch(console.error));
   restoreView();
 }
 
