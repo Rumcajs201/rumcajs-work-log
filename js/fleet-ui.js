@@ -1,3 +1,4 @@
+import "./operation-editor.js";
 import { get, put, STORES } from "./db/indexeddb.js";
 
 const $ = selector => document.querySelector(selector);
