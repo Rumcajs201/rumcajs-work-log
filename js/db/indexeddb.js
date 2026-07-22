@@ -1,12 +1,13 @@
 const DB_NAME = "rumcajs-work-log";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 export const STORES = {
   workdays: "workdays",
   operations: "operations",
   settings: "settings",
   appState: "appState",
-  backups: "backups"
+  backups: "backups",
+  places: "places"
 };
 
 let dbPromise;
