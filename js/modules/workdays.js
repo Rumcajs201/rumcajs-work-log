@@ -19,6 +19,8 @@ export async function saveDay(workday) {
     finalEndTime: workday.finalEndTime ?? null,
     startPosition: workday.startPosition ?? existing?.startPosition ?? null,
     endPosition: workday.endPosition ?? existing?.endPosition ?? null,
+    startAddress: workday.startAddress ?? existing?.startAddress ?? null,
+    endAddress: workday.endAddress ?? existing?.endAddress ?? null,
     manuallyAdjusted: Boolean(workday.manuallyAdjusted),
     breakMinutes: Number(workday.breakMinutes ?? 0),
     netMinutes,
