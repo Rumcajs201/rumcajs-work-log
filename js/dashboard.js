@@ -4,72 +4,11 @@ import { dateId } from "./modules/time.js";
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
-
-const TEXT = {
-  pl: {workday:"Aktywny dzień pracy",workdayHint:"Czas, pojazd, naczepa i zdarzenia zestawu",operations:"Załadunki i rozładunki",operationsHint:"Rozpoczęcie, zakończenie i edycja operacji",payments:"Rozliczenie / stawki",paymentsHint:"Stawki, nadgodziny i godziny nocne",history:"Historia",historyHint:"Wyszukiwanie zapisów kierowcy",vehicles:"Pojazdy i zestawy",vehiclesHint:"Samochody, naczepy i przebiegi",places:"Miejsca",placesHint:"Zapisane adresy i lokalizacje GPS",settings:"Ustawienia",settingsHint:"Profil, przewoźnik i kopia danych",produced:"Wyprodukował Rumcajs",title:"Osobisty dziennik kierowcy",profile:"Profil",truck:"Samochód",trailer:"Naczepa",since:"Praca od"},
-  en: {workday:"Active workday",workdayHint:"Time, vehicle, trailer and combination events",operations:"Loading and unloading",operationsHint:"Start, finish and edit operations",payments:"Payments / rates",paymentsHint:"Rates, overtime and night work",history:"History",historyHint:"Search the driver's records",vehicles:"Vehicles and combinations",vehiclesHint:"Vehicles, trailers and mileage",places:"Places",placesHint:"Saved addresses and GPS locations",settings:"Settings",settingsHint:"Profile, carrier and backup",produced:"Produced by Rumcajs",title:"Driver's personal journal",profile:"Profile",truck:"Vehicle",trailer:"Trailer",since:"Working since"},
-  de: {workday:"Aktiver Arbeitstag",workdayHint:"Zeit, Fahrzeug, Anhänger und Gespannereignisse",operations:"Be- und Entladung",operationsHint:"Vorgänge starten, beenden und bearbeiten",payments:"Abrechnung / Sätze",paymentsHint:"Sätze, Überstunden und Nachtarbeit",history:"Verlauf",historyHint:"Fahreraufzeichnungen durchsuchen",vehicles:"Fahrzeuge und Gespanne",vehiclesHint:"Fahrzeuge, Anhänger und Kilometerstände",places:"Orte",placesHint:"Gespeicherte Adressen und GPS-Orte",settings:"Einstellungen",settingsHint:"Profil, Frachtführer und Sicherung",produced:"Produziert von Rumcajs",title:"Persönliches Fahrertagebuch",profile:"Profil",truck:"Fahrzeug",trailer:"Anhänger",since:"Arbeit seit"},
-  no: {workday:"Aktiv arbeidsdag",workdayHint:"Tid, kjøretøy, henger og hendelser",operations:"Lasting og lossing",operationsHint:"Start, avslutt og rediger operasjoner",payments:"Oppgjør / satser",paymentsHint:"Satser, overtid og nattarbeid",history:"Historikk",historyHint:"Søk i førerens registreringer",vehicles:"Kjøretøy og vogntog",vehiclesHint:"Biler, hengere og kilometerstand",places:"Steder",placesHint:"Lagrede adresser og GPS-steder",settings:"Innstillinger",settingsHint:"Profil, transportør og sikkerhetskopi",produced:"Produsert av Rumcajs",title:"Førerens personlige dagbok",profile:"Profil",truck:"Bil",trailer:"Henger",since:"Arbeid fra"}
-};
-
-function ui() { return TEXT[document.documentElement.lang || "pl"] || TEXT.pl; }
-
-function showView(name) {
-  $$(".view").forEach(view => view.classList.toggle("active", view.id === `view-${name}`));
-  $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === name));
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  if (name === "history") setTimeout(() => $("#historyQuery")?.focus(), 100);
-}
-
-function openModule(name) {
-  if (name === "settings") {
-    document.querySelector('.nav-button[data-view="settings"]')?.click();
-    return;
-  }
-  if (name === "payments") {
-    $("#openPaymentsButton")?.click();
-    return;
-  }
-  showView(name);
-}
-
-function tile(icon, title, hint, target) {
-  return `<button class="dashboard-tile dashboard-${target}" type="button" data-dashboard-view="${target}"><span class="dashboard-tile-icon">${icon}</span><div><strong>${title}</strong><span>${hint}</span></div></button>`;
-}
-
-async function renderDashboard() {
-  const home = $("#view-home");
-  if (!home) return;
-  const t = ui();
-  let settings = null;
-  let day = null;
-  try {
-    [settings, day] = await Promise.all([get(STORES.settings, "main"), getDay(dateId())]);
-  } catch (error) {
-    console.error("Dashboard data error", error);
-  }
-  const profile = settings?.workProfile === "europris" ? "Europris" : (document.documentElement.lang === "pl" ? "Uniwersalny" : "Universal");
-  const trailer = day?.trailerId || day?.trailerNumber || "Solo";
-  home.innerHTML = `<div class="brand-strip"><div class="brand-rumcajs"><img src="https://rumcajs201.github.io/europris-dostawy/icons/icon-192.png" onerror="this.onerror=null;this.src='./assets/rumcajs-mark.svg'" alt="Rumcajs"><span>${t.produced}</span></div><div class="brand-title"><strong>${t.title}</strong><small id="dashboardVersion"></small></div></div><div class="dashboard-status"><div><span>${t.profile}</span><strong>${profile}</strong></div><div><span>${t.truck}</span><strong>${day?.truckId || "—"}</strong></div><div><span>${t.trailer}</span><strong>${trailer}</strong></div><div><span>${t.since}</span><strong>${day?.finalStartTime || "—"}</strong></div></div><div class="dashboard-grid">${tile("🕒",t.workday,t.workdayHint,"workday")}${tile("📦",t.operations,t.operationsHint,"operations")}${tile("💰",t.payments,t.paymentsHint,"payments")}${tile("📖",t.history,t.historyHint,"history")}${tile("🚛",t.vehicles,t.vehiclesHint,"vehicles")}${tile("📍",t.places,t.placesHint,"places")}${tile("⚙️",t.settings,t.settingsHint,"settings")}</div>`;
-  $("#dashboardVersion").textContent = $("#appVersion")?.textContent || "";
-}
-
-function boot() {
-  renderDashboard().catch(console.error);
-  document.addEventListener("click", event => {
-    const module = event.target.closest("[data-dashboard-view]");
-    if (module) {
-      event.preventDefault();
-      openModule(module.dataset.dashboardView);
-      return;
-    }
-    if (event.target.closest("[data-open-settings]")) openModule("settings");
-    if (event.target.closest(".module-back")) showView("home");
-  });
-  document.querySelector('.nav-button[data-view="home"]')?.addEventListener("click", () => setTimeout(() => renderDashboard().catch(console.error), 0));
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && $("#view-home")?.classList.contains("active")) renderDashboard().catch(console.error);
-  });
-}
-
+const TEXT={pl:{workday:"Aktywny dzień pracy",workdayHint:"Czas, pojazd, naczepa i zdarzenia zestawu",operations:"Załadunki i rozładunki",operationsHint:"Rozpoczęcie, zakończenie i edycja operacji",payments:"Rozliczenie / stawki",paymentsHint:"Stawki, nadgodziny i godziny nocne",history:"Historia",historyHint:"Wyszukiwanie zapisów kierowcy",vehicles:"Pojazdy i zestawy",vehiclesHint:"Samochody, naczepy i przebiegi",places:"Miejsca",placesHint:"Zapisane adresy i lokalizacje GPS",settings:"Ustawienia",settingsHint:"Profil, przewoźnik i kopia danych",produced:"Wyprodukował Rumcajs",title:"Osobisty dziennik kierowcy",profile:"Profil",truck:"Samochód",trailer:"Naczepa",since:"Praca od"},en:{workday:"Active workday",workdayHint:"Time, vehicle, trailer and combination events",operations:"Loading and unloading",operationsHint:"Start, finish and edit operations",payments:"Payments / rates",paymentsHint:"Rates, overtime and night work",history:"History",historyHint:"Search the driver's records",vehicles:"Vehicles and combinations",vehiclesHint:"Vehicles, trailers and mileage",places:"Places",placesHint:"Saved addresses and GPS locations",settings:"Settings",settingsHint:"Profile, carrier and backup",produced:"Produced by Rumcajs",title:"Driver's personal journal",profile:"Profile",truck:"Vehicle",trailer:"Trailer",since:"Working since"},de:{workday:"Aktiver Arbeitstag",workdayHint:"Zeit, Fahrzeug, Anhänger und Gespannereignisse",operations:"Be- und Entladung",operationsHint:"Vorgänge starten, beenden und bearbeiten",payments:"Abrechnung / Sätze",paymentsHint:"Sätze, Überstunden und Nachtarbeit",history:"Verlauf",historyHint:"Fahreraufzeichnungen durchsuchen",vehicles:"Fahrzeuge und Gespanne",vehiclesHint:"Fahrzeuge, Anhänger und Kilometerstände",places:"Orte",placesHint:"Gespeicherte Adressen und GPS-Orte",settings:"Einstellungen",settingsHint:"Profil, Frachtführer und Sicherung",produced:"Produziert von Rumcajs",title:"Persönliches Fahrertagebuch",profile:"Profil",truck:"Fahrzeug",trailer:"Anhänger",since:"Arbeit seit"},no:{workday:"Aktiv arbeidsdag",workdayHint:"Tid, kjøretøy, henger og hendelser",operations:"Lasting og lossing",operationsHint:"Start, avslutt og rediger operasjoner",payments:"Oppgjør / satser",paymentsHint:"Satser, overtid og nattarbeid",history:"Historikk",historyHint:"Søk i førerens registreringer",vehicles:"Kjøretøy og vogntog",vehiclesHint:"Biler, hengere og kilometerstand",places:"Steder",placesHint:"Lagrede adresser og GPS-steder",settings:"Innstillinger",settingsHint:"Profil, transportør og sikkerhetskopi",produced:"Produsert av Rumcajs",title:"Førerens personlige dagbok",profile:"Profil",truck:"Bil",trailer:"Henger",since:"Arbeid fra"}};
+function ui(){return TEXT[document.documentElement.lang||"pl"]||TEXT.pl;}
+function showView(name){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${name}`));$$('.nav-button').forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'});document.dispatchEvent(new CustomEvent('dashboard-view-opened',{detail:name}));if(name==='history')setTimeout(()=>$('#historyQuery')?.focus(),100);}
+function openModule(name){if(name==='settings'){document.querySelector('.nav-button[data-view="settings"]')?.click();setTimeout(()=>document.dispatchEvent(new CustomEvent('dashboard-view-opened',{detail:'settings'})),0);return;}if(name==='payments'){$('#openPaymentsButton')?.click();setTimeout(()=>document.dispatchEvent(new CustomEvent('dashboard-view-opened',{detail:'payments'})),0);return;}showView(name);}
+function tile(icon,title,hint,target){return `<button class="dashboard-tile dashboard-${target}" type="button" data-dashboard-view="${target}"><span class="dashboard-tile-icon">${icon}</span><div><strong>${title}</strong><span>${hint}</span></div></button>`;}
+async function renderDashboard(){const home=$('#view-home');if(!home)return;const t=ui();let settings=null,day=null;try{[settings,day]=await Promise.all([get(STORES.settings,'main'),getDay(dateId())]);}catch(error){console.error('Dashboard data error',error);}const profile=settings?.workProfile==='europris'?'Europris':(document.documentElement.lang==='pl'?'Uniwersalny':'Universal');const trailer=day?.trailerId||day?.trailerNumber||'Solo';home.innerHTML=`<div class="brand-strip"><div class="brand-rumcajs"><img src="https://rumcajs201.github.io/europris-dostawy/icons/icon-192.png" onerror="this.onerror=null;this.src='./assets/rumcajs-mark.svg'" alt="Rumcajs"><span>${t.produced}</span></div><div class="brand-title"><strong>${t.title}</strong><small id="dashboardVersion"></small></div></div><div class="dashboard-status"><div><span>${t.profile}</span><strong>${profile}</strong></div><div><span>${t.truck}</span><strong>${day?.truckId||'—'}</strong></div><div><span>${t.trailer}</span><strong>${trailer}</strong></div><div><span>${t.since}</span><strong>${day?.finalStartTime||'—'}</strong></div></div><div class="dashboard-grid">${tile('🕒',t.workday,t.workdayHint,'workday')}${tile('📦',t.operations,t.operationsHint,'operations')}${tile('💰',t.payments,t.paymentsHint,'payments')}${tile('📖',t.history,t.historyHint,'history')}${tile('🚛',t.vehicles,t.vehiclesHint,'vehicles')}${tile('📍',t.places,t.placesHint,'places')}${tile('⚙️',t.settings,t.settingsHint,'settings')}</div>`;$('#dashboardVersion').textContent=$('#appVersion')?.textContent||'';}
+function boot(){renderDashboard().catch(console.error);document.addEventListener('click',event=>{const module=event.target.closest('[data-dashboard-view]');if(module){event.preventDefault();openModule(module.dataset.dashboardView);return;}if(event.target.closest('[data-open-settings]'))openModule('settings');if(event.target.closest('.module-back'))showView('home');});document.querySelector('.nav-button[data-view="home"]')?.addEventListener('click',()=>setTimeout(()=>{renderDashboard().catch(console.error);document.dispatchEvent(new CustomEvent('dashboard-view-opened',{detail:'home'}));},0));document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('#view-home')?.classList.contains('active'))renderDashboard().catch(console.error);});}
 boot();
