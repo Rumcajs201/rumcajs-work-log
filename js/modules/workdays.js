@@ -10,9 +10,6 @@ const valueOrExisting = (workday, existing, key, fallback = null) =>
 export async function saveDay(workday) {
   const now = Date.now();
   const existing = await getDay(workday.id);
-
-  // Explicit null must clear a previous value. Using ?? here caused a finished
-  // workday to remain finished even after pressing "Start work" again.
   const finalStartTime = valueOrExisting(workday, existing, "finalStartTime");
   const finalEndTime = valueOrExisting(workday, existing, "finalEndTime");
   const breakMinutes = Number(valueOrExisting(workday, existing, "breakMinutes", 0) || 0);
@@ -47,6 +44,12 @@ export async function saveDay(workday) {
       : (existing?.trailerEvents || []),
     trailerNumber: valueOrExisting(workday, existing, "trailerNumber"),
     notes: String(valueOrExisting(workday, existing, "notes", "") ?? ""),
+    dailyChecklist: owns(workday, "dailyChecklist")
+      ? { ...(workday.dailyChecklist || {}) }
+      : { ...(existing?.dailyChecklist || {}) },
+    journalTags: owns(workday, "journalTags")
+      ? (Array.isArray(workday.journalTags) ? workday.journalTags : [])
+      : (existing?.journalTags || []),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now
   };
