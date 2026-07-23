@@ -24,9 +24,12 @@ export async function saveDay(workday) {
     manuallyAdjusted: Boolean(workday.manuallyAdjusted),
     breakMinutes: Number(workday.breakMinutes ?? 0),
     netMinutes,
-    truckId: String(workday.truckId ?? ""),
+    truckId: String(workday.truckId ?? existing?.truckId ?? ""),
+    vehicleChanges: Array.isArray(workday.vehicleChanges)
+      ? workday.vehicleChanges
+      : (Array.isArray(existing?.vehicleChanges) ? existing.vehicleChanges : []),
     trailerNumber: workday.trailerNumber ? Number(workday.trailerNumber) : null,
-    notes: String(workday.notes ?? ""),
+    notes: String(workday.notes ?? existing?.notes ?? ""),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now
   };
