@@ -1,4 +1,4 @@
-import { get, put, STORES } from "./db/indexeddb.js";
+import { get, STORES } from "./db/indexeddb.js";
 import { getDay, saveDay } from "./modules/workdays.js";
 import { getOperationsForDay } from "./modules/operations.js";
 import { dateId, clock } from "./modules/time.js";
@@ -47,13 +47,13 @@ async function openPicker(fromStart){
 }
 function closePicker(){pendingStart=false;$("#vehiclePicker")?.classList.add("hidden");}
 async function saveVehicle(){
-  const input=$("#vehiclePickerInput");const reg=input?.value.trim().toUpperCase();if(!reg)return input?.focus();const id=dateId();const existing=await getDay(id);const changing=!!existing?.truckId&&existing.truckId!==reg&&!!existing?.finalStartTime&&!existing?.finalEndTime;const changes=Array.isArray(existing?.vehicleChanges)?[...existing.vehicleChanges]:[];if(changing)changes.push({time:clock(new Date()),from:existing.truckId,to:reg,createdAt:Date.now()});
+  const input=$("#vehiclePickerInput");const reg=input?.value.trim().toUpperCase();if(!reg)return input?.focus();const resumeStart=pendingStart;const id=dateId();const existing=await getDay(id);const changing=!!existing?.truckId&&existing.truckId!==reg&&!!existing?.finalStartTime&&!existing?.finalEndTime;const changes=Array.isArray(existing?.vehicleChanges)?[...existing.vehicleChanges]:[];if(changing)changes.push({time:clock(new Date()),from:existing.truckId,to:reg,createdAt:Date.now()});
   await saveDay({...existing,id,date:id,dayType:existing?.dayType||"work",truckId:reg,vehicleChanges:changes,manuallyAdjusted:existing?.manuallyAdjusted||false});
   closePicker();toast(changing?ui().changed:ui().saved);await renderCard();
-  if(pendingStart){pendingStart=false;bypassStartGuard=true;$("#startWorkButton")?.click();setTimeout(()=>{bypassStartGuard=false;},0);}else{setTimeout(()=>location.reload(),220);}
+  if(resumeStart){bypassStartGuard=true;$("#startWorkButton")?.click();setTimeout(()=>{bypassStartGuard=false;},0);}else{setTimeout(()=>location.reload(),220);}
 }
 async function guardStart(event){
   if(bypassStartGuard)return;const day=await getDay(dateId());if(day?.truckId)return;event.preventDefault();event.stopImmediatePropagation();openPicker(true).catch(console.error);
 }
-function boot(){ensureUI();loadFleet().then(renderCard).catch(console.error);$("#startWorkButton")?.addEventListener("click",guardStart,true);const home=$("#view-home");if(home)new MutationObserver(()=>renderCard().catch(console.error)).observe(home,{childList:true,subtree:true});document.addEventListener("carrier-changed",()=>renderCard().catch(console.error));}
+function boot(){ensureUI();loadFleet().then(renderCard).catch(console.error);$("#startWorkButton")?.addEventListener("click",guardStart,true);document.addEventListener("carrier-changed",()=>renderCard().catch(console.error));document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderCard().catch(console.error);});}
 boot();
