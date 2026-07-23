@@ -1,3 +1,4 @@
+import "./operations-start-fix.js";
 import { get, STORES } from "./db/indexeddb.js";
 import { getDay } from "./modules/workdays.js";
 import { dateId } from "./modules/time.js";
