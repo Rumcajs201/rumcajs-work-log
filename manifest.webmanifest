@@ -1,6 +1,6 @@
 {
-  "name": "Rumcajs Work Log",
-  "short_name": "Work Log",
+  "name": "Osobisty Dziennik Kierowcy",
+  "short_name": "Dziennik kierowcy",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
