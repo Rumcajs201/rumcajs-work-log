@@ -1,57 +1,8 @@
-const CACHE = "rumcajs-work-log-v0.7.1-vehicle-trailer-start-1";
+const CACHE = "rumcajs-work-log-v0.8.0-trailer-odometer-1";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./css/app.css",
-  "./css/saved-places.css",
-  "./css/carrier-context.css",
-  "./css/fleet-ui.css",
-  "./css/operation-editor.css",
-  "./css/vehicle-day.css",
-  "./js/app.js",
-  "./js/i18n.js",
-  "./js/language-switcher.js",
-  "./js/history-search.js",
-  "./js/carrier-context.js",
-  "./js/fleet-ui.js",
-  "./js/operation-editor.js",
-  "./js/payments-settings.js",
-  "./js/workday-address.js",
-  "./js/vehicle-day.js",
-  "./js/config/app-config.js",
-  "./js/db/indexeddb.js",
-  "./js/modules/time.js",
-  "./js/modules/workdays.js",
-  "./js/modules/operations.js",
-  "./js/modules/backup.js",
-  "./js/modules/gps.js",
-  "./js/modules/stores.js",
-  "./js/modules/reverse-geocode.js",
-  "./js/modules/places.js",
-  "./data/carriers.json",
-  "./data/hansen-jensen-halden-fleet.json"
+  "./","./index.html","./manifest.webmanifest","./css/app.css","./css/saved-places.css","./css/carrier-context.css","./css/fleet-ui.css","./css/operation-editor.css","./css/vehicle-day.css",
+  "./js/app.js","./js/i18n.js","./js/language-switcher.js","./js/history-search.js","./js/carrier-context.js","./js/fleet-ui.js","./js/operation-editor.js","./js/payments-settings.js","./js/trailer-events.js","./js/workday-address.js","./js/vehicle-day.js","./js/config/app-config.js","./js/db/indexeddb.js","./js/modules/time.js","./js/modules/workdays.js","./js/modules/operations.js","./js/modules/backup.js","./js/modules/gps.js","./js/modules/stores.js","./js/modules/reverse-geocode.js","./js/modules/places.js","./data/carriers.json","./data/hansen-jensen-halden-fleet.json"
 ];
-self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
-});
-self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
-});
-self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-  const url = new URL(event.request.url);
-  const sameOrigin = url.origin === self.location.origin;
-  const isAppShell = event.request.mode === "navigate" || /\.(?:html|js|css|json|webmanifest)$/.test(url.pathname);
-  if (sameOrigin && isAppShell) {
-    event.respondWith(fetch(event.request, { cache: "no-store" }).then(response => {
-      if (response && response.status === 200) {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
-      }
-      return response;
-    }).catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html"))));
-    return;
-  }
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
-});
+self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
+self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
+self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);const sameOrigin=url.origin===self.location.origin;const isAppShell=event.request.mode==="navigate"||/\.(?:html|js|css|json|webmanifest)$/.test(url.pathname);if(sameOrigin&&isAppShell){event.respondWith(fetch(event.request,{cache:"no-store"}).then(response=>{if(response&&response.status===200){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}return response;}).catch(()=>caches.match(event.request).then(cached=>cached||caches.match("./index.html"))));return;}event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));});
