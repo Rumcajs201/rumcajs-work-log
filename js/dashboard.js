@@ -2,6 +2,7 @@ import "./operation-controls-fix.js";
 import "./places-manager.js";
 import "./innovation-pack.js";
 import "./workday-layout.js";
+import "./workday-odometer.js";
 import { get, STORES } from "./db/indexeddb.js";
 import { getDay } from "./modules/workdays.js";
 import { dateId } from "./modules/time.js";
