@@ -29,14 +29,10 @@ function arrange(){
   const vehicle=$("#vehicleDayCard");
   if(!workCard)return;
 
-  // The standard workday card already contains vehicle, trailer, start/end,
-  // locations and the start/finish buttons. Keep this single card visible.
   const summaryCells=workCard.querySelectorAll(".summary-grid > div");
   markDirectEdit(summaryCells[1],"truck");
   markDirectEdit(summaryCells[2],"trailer");
 
-  // Trailer controls are created inside the legacy vehicle card. Move them to
-  // the main workday card before hiding the duplicated legacy summary.
   const actions=$("#trailerEventActions");
   const history=$("#trailerEventHistory");
   if(actions&&actions.parentElement!==workCard)workCard.appendChild(actions);
@@ -46,6 +42,9 @@ function arrange(){
     vehicle.classList.add("workday-duplicate-hidden");
     vehicle.setAttribute("aria-hidden","true");
   }
+
+  const lastSavedCard=$("#lastSaved")?.closest("article.card");
+  if(lastSavedCard)lastSavedCard.remove();
 }
 
 function ensureModal(){
@@ -85,7 +84,7 @@ function ensureStyle(){
   if($("#workdayLayoutStyle"))return;
   const style=document.createElement("style");
   style.id="workdayLayoutStyle";
-  style.textContent=`.workday-duplicate-hidden{display:none!important}.direct-vehicle-edit{cursor:pointer;position:relative;border:2px solid transparent!important}.direct-vehicle-edit:after{content:"✎";position:absolute;right:8px;top:7px;font-size:.85rem;opacity:.65}.direct-vehicle-edit:active{transform:scale(.98);border-color:#377dd1!important}.direct-vehicle-modal{position:fixed;inset:0;z-index:1700;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:16px}.direct-vehicle-modal.hidden{display:none}.direct-vehicle-dialog{width:min(100%,460px);background:var(--card);border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.4)}.direct-vehicle-dialog input{width:100%;box-sizing:border-box;font-size:1.1rem;text-transform:uppercase}.direct-vehicle-dialog .button-row{margin-top:16px}#view-workday>article.card:first-of-type{border-top:4px solid #377dd1}`;
+  style.textContent=`.workday-duplicate-hidden{display:none!important}.direct-vehicle-edit{cursor:pointer;position:relative;border:1px solid var(--line)!important;background:var(--bg)!important}.direct-vehicle-edit:after{content:"✎";position:absolute;right:8px;top:7px;font-size:.85rem;opacity:.65}.direct-vehicle-edit:active{transform:scale(.98);border-color:#377dd1!important}.direct-vehicle-modal{position:fixed;inset:0;z-index:1700;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:16px}.direct-vehicle-modal.hidden{display:none}.direct-vehicle-dialog{width:min(100%,460px);background:var(--card);border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.4)}.direct-vehicle-dialog input{width:100%;box-sizing:border-box;font-size:1.1rem;text-transform:uppercase}.direct-vehicle-dialog .button-row{margin-top:16px}#view-workday>article.card:first-of-type{border-top:4px solid #377dd1}`;
   document.head.appendChild(style);
 }
 
