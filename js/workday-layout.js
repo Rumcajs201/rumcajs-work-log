@@ -13,18 +13,38 @@ const TEXT = {
 const t=()=>TEXT[document.documentElement.lang||"pl"]||TEXT.pl;
 function toast(message){const box=$("#toast");if(!box)return;box.textContent=message;box.classList.remove("hidden");clearTimeout(toast.timer);toast.timer=setTimeout(()=>box.classList.add("hidden"),2200);}
 
+function markDirectEdit(cell,type){
+  if(!cell)return;
+  cell.dataset.directEdit=type;
+  cell.classList.add("direct-vehicle-edit");
+  cell.setAttribute("role","button");
+  cell.setAttribute("tabindex","0");
+}
+
 function arrange(){
   const view=$("#view-workday");
   if(!view)return;
-  const head=view.querySelector(".module-head");
-  const vehicle=$("#vehicleDayCard");
+
   const workCard=view.querySelector("article.card:not(#journalToolsCard)");
-  if(head&&vehicle)head.after(vehicle);
-  if(vehicle&&workCard)vehicle.after(workCard);
+  const vehicle=$("#vehicleDayCard");
+  if(!workCard)return;
+
+  // The standard workday card already contains vehicle, trailer, start/end,
+  // locations and the start/finish buttons. Keep this single card visible.
+  const summaryCells=workCard.querySelectorAll(".summary-grid > div");
+  markDirectEdit(summaryCells[1],"truck");
+  markDirectEdit(summaryCells[2],"trailer");
+
+  // Trailer controls are created inside the legacy vehicle card. Move them to
+  // the main workday card before hiding the duplicated legacy summary.
+  const actions=$("#trailerEventActions");
+  const history=$("#trailerEventHistory");
+  if(actions&&actions.parentElement!==workCard)workCard.appendChild(actions);
+  if(history&&history.parentElement!==workCard)workCard.appendChild(history);
+
   if(vehicle){
-    const cells=vehicle.querySelectorAll(".vehicle-day-grid > div");
-    if(cells[0]){cells[0].dataset.directEdit="truck";cells[0].classList.add("direct-vehicle-edit");cells[0].setAttribute("role","button");cells[0].setAttribute("tabindex","0");}
-    if(cells[1]){cells[1].dataset.directEdit="trailer";cells[1].classList.add("direct-vehicle-edit");cells[1].setAttribute("role","button");cells[1].setAttribute("tabindex","0");}
+    vehicle.classList.add("workday-duplicate-hidden");
+    vehicle.setAttribute("aria-hidden","true");
   }
 }
 
@@ -65,7 +85,7 @@ function ensureStyle(){
   if($("#workdayLayoutStyle"))return;
   const style=document.createElement("style");
   style.id="workdayLayoutStyle";
-  style.textContent=`.direct-vehicle-edit{cursor:pointer;position:relative;border:2px solid transparent!important}.direct-vehicle-edit:after{content:"✎";position:absolute;right:8px;top:7px;font-size:.85rem;opacity:.65}.direct-vehicle-edit:active{transform:scale(.98);border-color:#377dd1!important}.direct-vehicle-modal{position:fixed;inset:0;z-index:1700;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:16px}.direct-vehicle-modal.hidden{display:none}.direct-vehicle-dialog{width:min(100%,460px);background:var(--card);border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.4)}.direct-vehicle-dialog input{width:100%;box-sizing:border-box;font-size:1.1rem;text-transform:uppercase}.direct-vehicle-dialog .button-row{margin-top:16px}#view-workday>article.card:first-of-type{border-top:4px solid #377dd1}`;
+  style.textContent=`.workday-duplicate-hidden{display:none!important}.direct-vehicle-edit{cursor:pointer;position:relative;border:2px solid transparent!important}.direct-vehicle-edit:after{content:"✎";position:absolute;right:8px;top:7px;font-size:.85rem;opacity:.65}.direct-vehicle-edit:active{transform:scale(.98);border-color:#377dd1!important}.direct-vehicle-modal{position:fixed;inset:0;z-index:1700;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:16px}.direct-vehicle-modal.hidden{display:none}.direct-vehicle-dialog{width:min(100%,460px);background:var(--card);border-radius:18px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.4)}.direct-vehicle-dialog input{width:100%;box-sizing:border-box;font-size:1.1rem;text-transform:uppercase}.direct-vehicle-dialog .button-row{margin-top:16px}#view-workday>article.card:first-of-type{border-top:4px solid #377dd1}`;
   document.head.appendChild(style);
 }
 
