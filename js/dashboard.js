@@ -13,6 +13,7 @@ import "./dynamic-view-activation-fix.js";
 import "./transport-profile.js";
 import "./data-health.js";
 import "./cargo-items.js";
+import "./monthly-pay-summary.js";
 import { get, STORES } from "./db/indexeddb.js";
 import { getDay } from "./modules/workdays.js";
 import { dateId } from "./modules/time.js";
