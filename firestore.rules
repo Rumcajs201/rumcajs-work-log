@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
+    }
+
+    match /admins/{uid} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /users/{uid} {
+      allow read, create, update, delete: if isOwner(uid) || isAdmin();
+
+      match /{document=**} {
+        allow read, create, update, delete: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'uid', 'type', 'subject', 'message', 'status',
+          'appVersion', 'deviceId', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type in ['bug', 'idea', 'question']
+        && request.resource.data.status == 'new'
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size() <= 160
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /appConfig/public {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /appVersions/{versionId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /adminAudit/{auditId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /statistics/{documentId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
