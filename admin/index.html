@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Panel administratora — Osobisty Dziennik Kierowcy</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}.panel{width:min(100%,520px);background:#fff;border-radius:22px;padding:24px;box-shadow:0 18px 45px rgba(17,24,39,.12)}
+    h1{margin:0 0 8px;font-size:1.55rem}p{line-height:1.5}.muted{color:#6b7280}.status{padding:14px;border-radius:14px;background:#f3f4f6;margin:18px 0;word-break:break-word}.status.ok{background:#ecfdf5;color:#065f46}.status.error{background:#fef2f2;color:#991b1b}.status.wait{background:#eff6ff;color:#1e40af}
+    button{width:100%;border:0;border-radius:14px;padding:14px 18px;font-size:1rem;font-weight:700;cursor:pointer;background:#111827;color:#fff}button.secondary{margin-top:10px;background:#e5e7eb;color:#111827}button:disabled{opacity:.55;cursor:not-allowed}.details{display:grid;gap:8px;margin-top:16px}.details div{padding:10px 12px;background:#f9fafb;border-radius:12px}.details small{display:block;color:#6b7280;margin-bottom:3px}.hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>Panel administratora</h1>
+    <p class="muted">Osobisty Dziennik Kierowcy</p>
+    <div id="status" class="status wait">Sprawdzanie stanu logowania…</div>
+    <button id="loginButton" type="button" class="hidden">Zaloguj przez Google</button>
+    <button id="logoutButton" type="button" class="secondary hidden">Wyloguj</button>
+    <section id="details" class="details hidden" aria-live="polite">
+      <div><small>Konto</small><strong id="email">—</strong></div>
+      <div><small>UID użytkownika</small><strong id="uid">—</strong></div>
+      <div><small>Rola</small><strong id="role">—</strong></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUwvyYssG3gvnNSfQTMItefFcRxb5df8g",
+      authDomain: "rumcajs-driver-journal.firebaseapp.com",
+      projectId: "rumcajs-driver-journal",
+      storageBucket: "rumcajs-driver-journal.firebasestorage.app",
+      messagingSenderId: "533774567547",
+      appId: "1:533774567547:web:3840056ed14de88ed8fade"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const statusBox = document.querySelector("#status");
+    const loginButton = document.querySelector("#loginButton");
+    const logoutButton = document.querySelector("#logoutButton");
+    const details = document.querySelector("#details");
+    const email = document.querySelector("#email");
+    const uid = document.querySelector("#uid");
+    const role = document.querySelector("#role");
+
+    function setStatus(text, type="wait") {
+      statusBox.textContent = text;
+      statusBox.className = `status ${type}`;
+    }
+
+    function showUser(user) {
+      details.classList.remove("hidden");
+      email.textContent = user.email || "—";
+      uid.textContent = user.uid;
+      logoutButton.classList.remove("hidden");
+      loginButton.classList.add("hidden");
+    }
+
+    function showLoggedOut() {
+      details.classList.add("hidden");
+      logoutButton.classList.add("hidden");
+      loginButton.classList.remove("hidden");
+      setStatus("Zaloguj się kontem administratora Google.", "wait");
+    }
+
+    async function verifyAdministrator(user) {
+      showUser(user);
+      role.textContent = "Sprawdzanie…";
+      setStatus("Sprawdzanie uprawnień administratora…", "wait");
+      try {
+        const snapshot = await getDoc(doc(db, "admins", user.uid));
+        if (!snapshot.exists() || snapshot.data()?.active !== true) {
+          role.textContent = "Brak uprawnień";
+          setStatus("Konto zostało uwierzytelnione, ale nie ma aktywnej roli administratora. Skopiuj UID widoczny poniżej i utwórz dokument admins/{uid} w Firestore.", "error");
+          return;
+        }
+        role.textContent = snapshot.data()?.role || "admin";
+        setStatus("Dostęp administratora potwierdzony. Panel jest gotowy do dalszej rozbudowy.", "ok");
+      } catch (error) {
+        console.error(error);
+        role.textContent = "Niepotwierdzona";
+        if (error?.code === "permission-denied") {
+          setStatus("Logowanie działa. Firestore odrzucił odczyt roli — trzeba teraz dodać dokument administratora i wdrożyć przygotowane reguły.", "error");
+        } else {
+          setStatus(`Nie udało się sprawdzić roli: ${error?.message || "nieznany błąd"}`, "error");
+        }
+      }
+    }
+
+    loginButton.addEventListener("click", async () => {
+      loginButton.disabled = true;
+      setStatus("Otwieranie logowania Google…", "wait");
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        if (["auth/popup-blocked", "auth/cancelled-popup-request", "auth/operation-not-supported-in-this-environment"].includes(error?.code)) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        setStatus(`Logowanie nie powiodło się: ${error?.message || "nieznany błąd"}`, "error");
+      } finally {
+        loginButton.disabled = false;
+      }
+    });
+
+    logoutButton.addEventListener("click", () => signOut(auth));
+
+    getRedirectResult(auth).catch(error => {
+      console.error(error);
+      setStatus(`Powrót z logowania nie powiódł się: ${error?.message || "nieznany błąd"}`, "error");
+    });
+
+    onAuthStateChanged(auth, user => user ? verifyAdministrator(user) : showLoggedOut());
+  </script>
+</body>
+</html>
