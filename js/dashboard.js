@@ -8,6 +8,7 @@ import "./workday-action-state.js";
 import "./app-information.js";
 import "./journal-archive.js";
 import "./transport-profile.js";
+import "./data-health.js";
 import { get, STORES } from "./db/indexeddb.js";
 import { getDay } from "./modules/workdays.js";
 import { dateId } from "./modules/time.js";
