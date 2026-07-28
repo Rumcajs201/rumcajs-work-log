@@ -88,18 +88,20 @@
       setStatus("Sprawdzanie uprawnień administratora…", "wait");
       try {
         const snapshot = await getDoc(doc(db, "admins", user.uid));
-        if (!snapshot.exists() || snapshot.data()?.active !== true) {
+        const adminData = snapshot.exists() ? snapshot.data() : null;
+        const hasAdminRole = adminData?.role === "admin" && adminData?.active !== false;
+        if (!hasAdminRole) {
           role.textContent = "Brak uprawnień";
-          setStatus("Konto zostało uwierzytelnione, ale nie ma aktywnej roli administratora. Skopiuj UID widoczny poniżej i utwórz dokument admins/{uid} w Firestore.", "error");
+          setStatus("Konto zostało uwierzytelnione, ale nie ma aktywnej roli administratora.", "error");
           return;
         }
-        role.textContent = snapshot.data()?.role || "admin";
+        role.textContent = "Administrator";
         setStatus("Dostęp administratora potwierdzony. Panel jest gotowy do dalszej rozbudowy.", "ok");
       } catch (error) {
         console.error(error);
         role.textContent = "Niepotwierdzona";
         if (error?.code === "permission-denied") {
-          setStatus("Logowanie działa. Firestore odrzucił odczyt roli — trzeba teraz dodać dokument administratora i wdrożyć przygotowane reguły.", "error");
+          setStatus("Logowanie działa, ale reguły Firestore nie zostały jeszcze opublikowane.", "error");
         } else {
           setStatus(`Nie udało się sprawdzić roli: ${error?.message || "nieznany błąd"}`, "error");
         }
