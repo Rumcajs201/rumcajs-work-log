@@ -8,6 +8,7 @@ import "./workday-action-state.js";
 import "./app-information.js";
 import "./journal-archive.js";
 import "./timeline-operation-times.js";
+import "./life-trailer-timeline.js";
 import "./dynamic-view-activation-fix.js";
 import "./transport-profile.js";
 import "./data-health.js";
