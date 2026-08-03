@@ -9,6 +9,7 @@ import "./app-information.js";
 import "./journal-archive.js";
 import "./archive-month-selector.js";
 import "./reports-export.js";
+import "./reports-totals-compact.js";
 import "./timeline-operation-times.js";
 import "./life-trailer-timeline.js";
 import "./dynamic-view-activation-fix.js";
