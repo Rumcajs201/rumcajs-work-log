@@ -1,3 +1,5 @@
+import "./reports-compact.js";
+
 const $=s=>document.querySelector(s);
 const lang=()=>document.documentElement.lang||"pl";
 const TEXT={
