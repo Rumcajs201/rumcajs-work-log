@@ -42,8 +42,8 @@ async function detectSavedPlace(){
   }catch(error){console.error(error);toast(error?.message||t().fail);}
   finally{busy=false;button.disabled=false;button.textContent=t().gps;}
 }
-document.addEventListener("click",event=>{
-  const button=event.target.closest("#detectStoreButton");
+window.addEventListener("click",event=>{
+  const button=event.target.closest?.("#detectStoreButton");
   if(!button)return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
   detectSavedPlace();
