@@ -55,7 +55,7 @@ export async function finishOperation(id, data) {
     endTime: data.endTime,
     detectedEndTime: data.detectedEndTime,
     pallets,
-    emptyPallets: operation.type === "unload" ? emptyValue : 0,
+    emptyPallets: emptyValue,
     notes: String(data.notes || ""),
     endedAt: Date.now(),
     updatedAt: Date.now()
