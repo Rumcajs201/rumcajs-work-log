@@ -1,0 +1,11 @@
+{
+  "name": "Rumcajs Work Log Universal",
+  "short_name": "Work Log",
+  "start_url": "./?variant=universal",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "lang": "pl",
+  "icons": []
+}
