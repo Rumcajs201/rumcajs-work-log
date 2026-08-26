@@ -1,3 +1,5 @@
+import "../truck-change-odometer.js";
+
 const params = new URLSearchParams(window.location.search);
 const universalDistribution = params.get("variant") === "universal";
 
@@ -39,7 +41,7 @@ if (universalDistribution) {
 }
 
 export const APP_CONFIG = Object.freeze({
-  version: "0.16.33",
+  version: "0.16.34",
   distribution: universalDistribution ? "universal" : "full",
   availableProfiles: universalDistribution ? ["universal"] : ["europris", "universal"],
   defaultProfile: universalDistribution ? "universal" : "europris",
