@@ -41,7 +41,7 @@ if (universalDistribution) {
 }
 
 export const APP_CONFIG = Object.freeze({
-  version: "0.16.34",
+  version: "0.16.35",
   distribution: universalDistribution ? "universal" : "full",
   availableProfiles: universalDistribution ? ["universal"] : ["europris", "universal"],
   defaultProfile: universalDistribution ? "universal" : "europris",
